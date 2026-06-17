@@ -8,12 +8,12 @@
     "theme_color": "#ffeef2",
     "icons": [
         {
-            "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+            "src": "https://gravatar.com/avatar/43375c2041b71352ccc8429e0ecdeea647df82a0bcd6872c43a405f3ebcfc78d?v=1781654174000&size=256&d=initials",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+            "src": "https://gravatar.com/avatar/43375c2041b71352ccc8429e0ecdeea647df82a0bcd6872c43a405f3ebcfc78d?v=1781654174000&size=256&d=initials",
             "sizes": "512x512",
             "type": "image/png"
         }
