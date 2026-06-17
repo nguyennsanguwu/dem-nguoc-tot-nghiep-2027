@@ -518,16 +518,10 @@
                 <!-- Nút bấm vào sẽ gọi hàm báo tính năng đang phát triển -->
                 <button class="menu-item glass" onclick="showFeatureInDev()">📚 Tra cứu điểm thi</button>
             </li>
-            
-            <!-- Chỗ trống để thêm tính năng khác trong tương lai -->
-            <!--
             <li>
-                <button class="menu-item glass">🎯 Tính năng mới 1</button>
+                <!-- Nút bấm gọi hàm cài đặt ứng dụng PWA -->
+                <button class="menu-item glass" id="menu-install-btn">📲 Cài đặt ứng dụng</button>
             </li>
-            <li>
-                <button class="menu-item glass">📝 Tính năng mới 2</button>
-            </li>
-            -->
         </ul>
     </div>
 
@@ -663,31 +657,42 @@
             });
         }
 
-        /* --- 8. XỬ LÝ INSTALL BANNER --- */
+        /* --- 8. XỬ LÝ CÀI ĐẶT ỨNG DỤNG (PWA INSTALL) --- */
         let deferredPrompt;
         const installBanner = document.getElementById('install-banner');
         const installBtn = document.getElementById('install-btn');
         const closeInstallBtn = document.getElementById('close-install-btn');
+        const menuInstallBtn = document.getElementById('menu-install-btn'); // Nút trong menu
 
+        // Sự kiện kích hoạt khi trình duyệt thấy trang web đủ điều kiện PWA
         window.addEventListener('beforeinstallprompt', (e) => {
             // Ngăn chặn Chrome tự hiển thị mini-infobar mặc định
             e.preventDefault();
             // Lưu lại event để kích hoạt sau
             deferredPrompt = e;
-            // Hiển thị banner của chúng ta
+            // Hiển thị thanh banner kính lỏng của chúng ta
             installBanner.classList.add('show');
         });
 
-        installBtn.addEventListener('click', async () => {
-            installBanner.classList.remove('show');
+        // Hàm xử lý chung khi người dùng bấm cài đặt (Từ banner hoặc từ Menu)
+        async function handleInstall() {
             if (deferredPrompt) {
+                // Đóng menu và banner
+                installBanner.classList.remove('show');
+                document.getElementById('menu-modal').classList.remove('active');
+                
                 // Hiển thị prompt cài đặt mặc định của trình duyệt
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 console.log(`User response to the install prompt: ${outcome}`);
                 deferredPrompt = null;
+            } else {
+                alert("Thiết bị của bạn đã cài ứng dụng này rồi, hoặc trình duyệt không hỗ trợ cài đặt!");
             }
-        });
+        }
+
+        installBtn.addEventListener('click', handleInstall);
+        menuInstallBtn.addEventListener('click', handleInstall);
 
         closeInstallBtn.addEventListener('click', () => {
             installBanner.classList.remove('show');
