@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đếm Ngược Thi Tốt Nghiệp THPT</title>
+    <title>Đếm ngược TNPT</title>
     <!-- Nhúng font chữ Patrick Hand từ Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -460,7 +460,10 @@
             <button id="close-install-btn">✖</button>
         </div>
     </div>
-
+        <div class="custom-popup glass" id="custom-popup" style="display:none; align-items:center;">
+            <span id="custom-popup-message"></span>
+            <button id="custom-popup-close">✖</button>
+        </div>
     <!-- MÀN HÌNH CHÍNH (HERO SECTION) -->
     <div class="hero-section">
         
@@ -534,6 +537,10 @@
             <li>
                 <!-- Nút bấm gọi hàm cài đặt ứng dụng PWA -->
                 <button class="menu-item glass" id="menu-install-btn">📲 Cài đặt ứng dụng</button>
+            </li>
+            <li>
+                <!-- Nút bấm xóa cache -->
+                <button class="menu-item glass" id="menu-clear-cache-btn">🗑️ Xóa Cache</button>
             </li>
         </ul>
     </div>
@@ -676,6 +683,24 @@
         const installBtn = document.getElementById('install-btn');
         const closeInstallBtn = document.getElementById('close-install-btn');
         const menuInstallBtn = document.getElementById('menu-install-btn'); // Nút trong menu
+        const menuClearCacheBtn = document.getElementById('menu-clear-cache-btn'); // Nút xóa cache
+        
+        // Xử lý xóa cache khi người dùng nhấn nút
+        menuClearCacheBtn.addEventListener('click', async () => {
+            if ('caches' in window) {
+                const cacheName = 'dem-nguoc-v1';
+                const deleted = await caches.delete(cacheName);
+                if (deleted) {
+                    alert('✔️ Đã xóa cache thành công!');
+                } else {
+                    alert('⚠️ Không tìm thấy cache để xóa.');
+                }
+            } else {
+                alert('Trình duyệt không hỗ trợ Cache API.');
+            }
+            // Đóng modal nếu đang mở
+            document.getElementById('menu-modal').classList.remove('active');
+        });
 
         // Sự kiện kích hoạt khi trình duyệt thấy trang web đủ điều kiện PWA
         window.addEventListener('beforeinstallprompt', (e) => {
