@@ -4,8 +4,8 @@
     "description": "Ứng dụng đếm ngược ngày thi tốt nghiệp THPT",
     "start_url": "./index.html",
     "display": "standalone",
-    "background_color": "#ffb7c5",
-    "theme_color": "#ffb7c5",
+    "background_color": "#ffeef2",
+    "theme_color": "#ffeef2",
     "icons": [
         {
             "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
