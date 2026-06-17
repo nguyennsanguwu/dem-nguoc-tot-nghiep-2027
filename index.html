@@ -42,9 +42,15 @@
             font-family: 'Patrick Hand', cursive;
             color: var(--text-color);
             overflow-x: hidden;
-            /* Hình nền hoa anh đào */
-            background: url('https://images.unsplash.com/photo-1522383225653-ed111181a951?q=80&w=2076&auto=format&fit=crop') no-repeat center center fixed;
-            background-size: cover;
+            /* Remove background from body; use fixed pseudo-element for static background */
+        }
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: url('https://images.unsplash.com/photo-1522383225653-ed111181a951?q=80&w=2076&auto=format&fit=crop') no-repeat center center / cover;
+            z-index: -2;
+            pointer-events: none;
         }
 
         /* Lớp phủ mờ (overlay) màu hồng phấn tĩnh */
