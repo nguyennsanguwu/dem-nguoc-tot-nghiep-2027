@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đếm Ngược Thi Tốt Nghiệp THPT</title>
+    <!-- Nhúng font chữ Patrick Hand từ Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#ffb7c5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    
+    <style>
+        /* =========================================
+           1. CÁC BIẾN CSS VÀ CÀI ĐẶT CHUNG
+           ========================================= */
+        :root {
+            /* Tinh chỉnh độ trong suốt để tăng độ tương phản */
+            --glass-bg: rgba(255, 255, 255, 0.35); 
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: rgba(255, 105, 180, 0.2); 
+            --text-color: #444444; 
+            --text-pink: #d1496b; 
+        }
+
+        html {
+            scroll-behavior: smooth; /* Hiệu ứng cuộn mượt */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Patrick Hand', cursive;
+            color: var(--text-color);
+            overflow-x: hidden;
+            /* Hình nền hoa anh đào */
+            background: url('https://images.unsplash.com/photo-1522383225653-ed111181a951?q=80&w=2076&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        /* Lớp phủ mờ (overlay) màu hồng phấn tĩnh */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 240, 245, 0.4); 
+            z-index: -1;
+        }
+
+        /* =========================================
+           2. THIẾT KẾ KÍNH LỎNG (GLASSMORPHISM TỐI ƯU)
+           ========================================= */
+        .glass {
+            background: var(--glass-bg);
+            /* Tăng độ mờ lên 16px để chữ không bị lẫn vào nền */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 var(--glass-shadow);
+            border-radius: 24px;
+        }
+
+        /* =========================================
+           3. MÀN HÌNH CHÍNH (HERO SECTION)
+           ========================================= */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Đồng hồ thời gian thực */
+        .current-time {
+            position: absolute;
+            top: 20px;
+            padding: 10px 25px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--text-pink);
+            letter-spacing: 1px;
+            text-align: center;
+            /* Tạo hiệu ứng nổi chữ (Text Shadow) */
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.6);
+        }
+
+        /* Bố cục lưới đếm ngược: 2x2 cho Mobile */
+        .countdown-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 cột bằng nhau */
+            gap: 15px;
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 320px; /* Giới hạn để lưới không quá bè ra trên tablet/màn hình nhỡ */
+            justify-items: center;
+        }
+
+        .countdown-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%; /* Trải dài hết 1 ô của grid */
+            height: 120px;
+            box-sizing: border-box;
+        }
+
+        .countdown-item span {
+            font-size: 3rem; /* Giảm xuống 3rem để số 3 chữ số (VD: 358) vừa vặn trên Mobile */
+            font-weight: bold;
+            color: var(--text-pink);
+            line-height: 1;
+            /* Tạo bóng chữ để dễ đọc hơn */
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.6);
+        }
+
+        .countdown-item .label {
+            font-size: 1.3rem;
+            margin-top: 5px;
+            font-weight: bold;
+            text-shadow: 0 1px 3px rgba(255, 255, 255, 0.6);
+        }
+
+        /* Lời nhắn ngày thi */
+        .exam-date {
+            padding: 15px 30px; /* Padding hợp lý tạo sự thông thoáng */
+            font-size: 1.5rem;
+            text-align: center;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.6);
+        }
+
+        /* Nút cuộn xuống */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            font-size: 1.3rem;
+            animation: bounce 2s infinite;
+            opacity: 0.8;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-pink);
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.6);
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-15px); }
+            60% { transform: translateY(-7px); }
+        }
+
+        /* =========================================
+           4. THÔNG TIN NGƯỜI TẠO (ABOUT SECTION)
+           ========================================= */
+        .about-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .about-content {
+            padding: 40px;
+            max-width: 600px;
+            text-align: center;
+            /* Trạng thái ban đầu để làm hiệu ứng fade-in mượt mà */
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s ease-out;
+            text-shadow: 0 1px 3px rgba(255, 255, 255, 0.5);
+        }
+
+        .about-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .about-content h2 {
+            color: var(--text-pink);
+            font-size: 2.5rem;
+            margin-top: 0;
+        }
+
+        .about-content p {
+            font-size: 1.5rem;
+            line-height: 1.5;
+        }
+
+        /* =========================================
+           5. NÚT MENU & BẢNG CHỌN CHỨC NĂNG
+           ========================================= */
+        .menu-btn {
+            position: fixed;
+            bottom: -100px; /* Ẩn đi lúc đầu */
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 1px solid var(--glass-border);
+            font-size: 1.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            color: var(--text-pink);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+        }
+
+        .menu-btn.show {
+            bottom: 30px; /* Hiện lên khi cuộn */
+            opacity: 1;
+        }
+
+        .menu-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--glass-shadow);
+        }
+
+        .menu-btn.active {
+            transform: scale(0.9);
+        }
+
+        /* Khung Modal Bảng chọn trượt từ dưới lên */
+        .menu-modal {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 280px;
+            padding: 20px;
+            z-index: 99;
+            transform: translateY(20px) scale(0.95);
+            opacity: 0;
+            transform-origin: bottom right;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            visibility: hidden;
+            pointer-events: none; /* Tránh click nhầm khi đang ẩn */
+        }
+
+        .menu-modal.active {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .menu-header h3 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--text-pink);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: var(--text-pink);
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .menu-list li {
+            margin-bottom: 10px;
+        }
+
+        .menu-item {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: var(--text-color);
+            text-align: left;
+            transition: all 0.2s ease;
+            font-weight: bold;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: translateX(5px);
+        }
+
+        /* =========================================
+           6. RESPONSIVE CHO DESKTOP / MÀN HÌNH LỚN
+           ========================================= */
+        @media (min-width: 768px) {
+            .countdown-container {
+                display: flex; /* Chuyển thành hàng ngang trên Desktop */
+                flex-direction: row;
+                justify-content: center; /* Căn giữa đồng hồ ở giữa màn hình */
+                max-width: none; /* Hủy bỏ giới hạn chiều rộng của Grid Mobile */
+                gap: 25px;
+            }
+            .countdown-item {
+                width: 150px;
+                height: 170px;
+            }
+            .countdown-item span {
+                font-size: 6.5rem;
+            }
+            .countdown-item .label {
+                font-size: 1.8rem;
+            }
+            .current-time {
+                font-size: 1.6rem;
+                padding: 15px 35px;
+            }
+            .exam-date {
+                font-size: 2rem;
+                padding: 20px 45px; /* Tăng padding trên desktop */
+            }
+        }
+
+        /* =========================================
+           7. HIỆU ỨNG HOA ANH ĐÀO RƠI (TỐI ƯU HIỆU NĂNG)
+           ========================================= */
+        .petal {
+            position: fixed;
+            background-color: #ffb7c5; 
+            border-radius: 15px 0 15px 0; 
+            pointer-events: none; 
+            z-index: -1; 
+            box-shadow: 0 0 5px rgba(255, 183, 197, 0.5);
+            /* Sử dụng will-change để trình duyệt ưu tiên dựng hình bằng phần cứng (Hardware Acceleration) */
+            will-change: transform, opacity;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            0% {
+                top: -10vh;
+                transform: translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                top: 110vh;
+                transform: translateX(100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* =========================================
+           8. THANH THÔNG BÁO CÀI ĐẶT PWA
+           ========================================= */
+        .install-banner {
+            position: fixed;
+            top: -100px; /* Ẩn mặc định */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+            transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 1.2rem;
+            color: var(--text-color);
+            font-weight: bold;
+        }
+
+        .install-banner.show {
+            top: 20px; /* Hiện ra khi có sự kiện cài đặt */
+        }
+
+        .install-banner-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .install-banner-btns button {
+            cursor: pointer;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.1rem;
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 5px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-color);
+            transition: background 0.3s;
+        }
+
+        .install-banner-btns button:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        #install-btn {
+            background: var(--text-pink);
+            color: white;
+            border: none;
+        }
+
+        #install-btn:hover {
+            background: #b53856;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- THANH THÔNG BÁO CÀI ĐẶT PWA (INSTALL BANNER) -->
+    <div class="install-banner glass" id="install-banner">
+        <span>Cài đặt App để xem Offline! 🌸</span>
+        <div class="install-banner-btns">
+            <button id="install-btn">Cài đặt</button>
+            <button id="close-install-btn">✖</button>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH CHÍNH (HERO SECTION) -->
+    <div class="hero-section">
+        
+        <!-- Đồng hồ thời gian thực -->
+        <div class="current-time glass" id="current-time">
+            Đang tải thời gian...
+        </div>
+
+        <!-- Lưới đếm ngược -->
+        <div class="countdown-container">
+            <div class="countdown-item glass">
+                <span id="days">00</span>
+                <div class="label">Ngày</div>
+            </div>
+            <div class="countdown-item glass">
+                <span id="hours">00</span>
+                <div class="label">Giờ</div>
+            </div>
+            <div class="countdown-item glass">
+                <span id="minutes">00</span>
+                <div class="label">Phút</div>
+            </div>
+            <div class="countdown-item glass">
+                <span id="seconds">00</span>
+                <div class="label">Giây</div>
+            </div>
+        </div>
+
+        <!-- Ngày thi mục tiêu -->
+        <div class="exam-date glass">
+            Ngày thi tốt nghiệp: 11/06/2027 và 12/06/2027
+        </div>
+        
+        <!-- Nút cuộn xuống -->
+        <a href="#about-section" class="scroll-indicator">
+            Cuộn xuống để xem thêm 👇
+        </a>
+    </div>
+
+    <!-- MÀN HÌNH THÔNG TIN (ABOUT SECTION) -->
+    <div class="about-section" id="about-section">
+        <div class="about-content glass" id="about-content">
+            <h2>🌸 Lời Chúc Gửi Tới Các Sĩ Tử 🌸</h2>
+            <p>Hành trình ngàn dặm bắt đầu từ một bước chân. Hãy giữ tinh thần thật vững vàng và ôn tập hiệu quả nhé!</p>
+            <p>Mỗi nỗ lực ngày hôm nay đều là hành trang quý giá cho ngày mai.</p>
+            <p><strong>Cố lên nhé! Tương lai tươi sáng đang chờ đón các bạn! ❤️</strong></p>
+
+            <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 30px 0;">
+            <h3>Thông Tin Người Tạo</h3>
+            <p style="font-size: 1.2rem; margin-bottom: 5px;">Thiết kế & Lập trình bởi: <strong>[Nhập tên của bạn vào đây]</strong></p>
+            <p style="font-size: 1.2rem; margin-top: 0;">Liên hệ: <a href="#" style="color: var(--text-pink); text-decoration: none; font-weight: bold;">Facebook / Instagram</a></p>
+        </div>
+    </div>
+
+    <!-- NÚT MENU GÓC DƯỚI PHẢI -->
+    <button class="menu-btn glass" id="menu-btn">
+        ☰
+    </button>
+
+    <!-- BẢNG CHỌN TÍNH NĂNG (MODAL TRƯỢT LÊN) -->
+    <div class="menu-modal glass" id="menu-modal">
+        <div class="menu-header">
+            <h3>Danh sách tiện ích</h3>
+            <button class="close-btn" id="close-btn">✖</button>
+        </div>
+        <ul class="menu-list">
+            <li>
+                <!-- Nút bấm vào sẽ gọi hàm báo tính năng đang phát triển -->
+                <button class="menu-item glass" onclick="showFeatureInDev()">📚 Tra cứu điểm thi</button>
+            </li>
+            
+            <!-- Chỗ trống để thêm tính năng khác trong tương lai -->
+            <!--
+            <li>
+                <button class="menu-item glass">🎯 Tính năng mới 1</button>
+            </li>
+            <li>
+                <button class="menu-item glass">📝 Tính năng mới 2</button>
+            </li>
+            -->
+        </ul>
+    </div>
+
+    <!-- =========================================
+         MÃ NGUỒN JAVASCRIPT
+         ========================================= -->
+    <script>
+        /* --- 1. XỬ LÝ ĐỒNG HỒ HIỆN TẠI (REAL-TIME CLOCK) --- */
+        function updateCurrentTime() {
+            const now = new Date();
+            
+            // Lấy giờ, phút, giây và thêm số 0 đằng trước nếu nhỏ hơn 10
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const timeString = `${hours}:${minutes}:${seconds}`;
+            
+            // Lấy ngày/tháng/năm
+            const dateString = now.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            
+            document.getElementById('current-time').innerText = `${timeString}  -  ${dateString}`;
+        }
+        setInterval(updateCurrentTime, 1000);
+        updateCurrentTime();
+
+        /* --- 2. XỬ LÝ BỘ ĐẾM NGƯỢC (COUNTDOWN TIMER) --- */
+        const targetDate = new Date('2027-06-11T00:00:00').getTime();
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            if (distance < 0) {
+                document.getElementById('days').innerText = "00";
+                document.getElementById('hours').innerText = "00";
+                document.getElementById('minutes').innerText = "00";
+                document.getElementById('seconds').innerText = "00";
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById('days').innerText = days.toString().padStart(2, '0');
+            document.getElementById('hours').innerText = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').innerText = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').innerText = seconds.toString().padStart(2, '0');
+        }
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+
+        /* --- 3. XỬ LÝ HIỆU ỨNG CUỘN TRANG (SCROLL ANIMATION) --- */
+        const aboutContent = document.getElementById('about-content');
+        const menuBtn = document.getElementById('menu-btn');
+        const menuModal = document.getElementById('menu-modal');
+
+        window.addEventListener('scroll', () => {
+            const scrollPosition = window.scrollY;
+            const windowHeight = window.innerHeight;
+            
+            // Fade-in About Section
+            const aboutPosition = aboutContent.getBoundingClientRect().top;
+            if (aboutPosition < windowHeight * 0.85) {
+                aboutContent.classList.add('visible');
+            }
+
+            // Hiện nút Menu
+            if (scrollPosition > windowHeight * 0.25) {
+                menuBtn.classList.add('show');
+            } else {
+                menuBtn.classList.remove('show');
+                menuModal.classList.remove('active');
+            }
+        });
+
+        /* --- 4. XỬ LÝ MENU KÍNH LỎNG (GLASSMORPHISM MENU) --- */
+        const closeBtn = document.getElementById('close-btn');
+
+        menuBtn.addEventListener('click', () => {
+            menuModal.classList.toggle('active');
+            
+            // Hiệu ứng nảy nhẹ nút menu
+            menuBtn.classList.add('active');
+            setTimeout(() => {
+                menuBtn.classList.remove('active');
+            }, 150);
+        });
+
+        closeBtn.addEventListener('click', () => {
+            menuModal.classList.remove('active');
+        });
+
+        function showFeatureInDev() {
+            alert("🌸 Tính năng 'Tra cứu điểm thi' đang được phát triển. Vui lòng quay lại sau nhé!");
+        }
+
+        /* --- 6. HIỆU ỨNG HOA ANH ĐÀO RƠI (CHERRY BLOSSOM) TỐI ƯU --- */
+        function createPetal() {
+            const petal = document.createElement('div');
+            petal.classList.add('petal');
+            
+            const size = Math.random() * 10 + 8; // 8px đến 18px
+            petal.style.width = `${size}px`;
+            petal.style.height = `${size}px`;
+            petal.style.left = `${Math.random() * 100}vw`;
+            
+            const duration = Math.random() * 5 + 6; // 6s đến 11s (rơi chậm mượt)
+            petal.style.animationDuration = `${duration}s`;
+            
+            document.body.appendChild(petal);
+
+            // Dọn dẹp DOM
+            setTimeout(() => {
+                petal.remove();
+            }, duration * 1000);
+        }
+
+        // Tạo cánh hoa mỗi 500ms thay vì 400ms để giảm tải phần cứng
+        setInterval(createPetal, 500);
+
+        /* --- 7. ĐĂNG KÝ SERVICE WORKER (PWA OFFLINE MODE) --- */
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker đăng ký thành công với scope: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker đăng ký thất bại: ', error);
+                    });
+            });
+        }
+
+        /* --- 8. XỬ LÝ INSTALL BANNER --- */
+        let deferredPrompt;
+        const installBanner = document.getElementById('install-banner');
+        const installBtn = document.getElementById('install-btn');
+        const closeInstallBtn = document.getElementById('close-install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Ngăn chặn Chrome tự hiển thị mini-infobar mặc định
+            e.preventDefault();
+            // Lưu lại event để kích hoạt sau
+            deferredPrompt = e;
+            // Hiển thị banner của chúng ta
+            installBanner.classList.add('show');
+        });
+
+        installBtn.addEventListener('click', async () => {
+            installBanner.classList.remove('show');
+            if (deferredPrompt) {
+                // Hiển thị prompt cài đặt mặc định của trình duyệt
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+            }
+        });
+
+        closeInstallBtn.addEventListener('click', () => {
+            installBanner.classList.remove('show');
+        });
+    </script>
+</body>
+</html>
