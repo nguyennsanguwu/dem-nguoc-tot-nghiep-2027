@@ -1,6 +1,6 @@
 {
     "name": "Đếm Ngược Thi THPT",
-    "short_name": "Đếm Ngược",
+    "short_name": "Đếm Ngược TNPT",
     "description": "Ứng dụng đếm ngược ngày thi tốt nghiệp THPT",
     "start_url": "./index.html",
     "display": "standalone",
